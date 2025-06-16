@@ -41,7 +41,7 @@ func MakeMenu(ap fyne.App, win fyne.Window, cfg *config.UserConfig) *fyne.MainMe
 }
 
 func ShowHelp(ap fyne.App) {
-	u, _ := url.Parse("https://www.huangoo.top/index.php/archives/139/")
+	u, _ := url.Parse("https://www.huangoo.top/index.php/archives/169/")
 	_ = ap.OpenURL(u)
 }
 
