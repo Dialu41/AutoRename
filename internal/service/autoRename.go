@@ -55,11 +55,12 @@ func (r *RenameData) MonitorDirs(dirPath string) {
 	watcher.Add(dirPath)
 
 	// 已使用的命名索引，用于记录已经重命名了多少个文件
-	usedNames := 0
+	numUsedNames := 0
+	usedNames := make(map[string]bool)
 	numName := len(r.NameEntryIndex)
 
 	// 当还有可用的命名时，持续监测文件创建事件
-	for usedNames < numName {
+	for numUsedNames < numName {
 		select {
 		// 监听文件系统监视器的事件通道
 		case event, ok := <-watcher.Events:
@@ -71,12 +72,16 @@ func (r *RenameData) MonitorDirs(dirPath string) {
 			if event.Op&fsnotify.Create == fsnotify.Create {
 				// 检查新创建的文件是否为图片文件
 				if isImageFile(event.Name) {
+					//跳过已重命名过的文件
+					if usedNames[event.Name] {
+						continue
+					}
 					// 再次检查是否还有可用的命名，如果没有则跳出当前处理逻辑
-					if usedNames >= numName {
+					if numUsedNames >= numName {
 						break
 					}
 					// 拼接新的文件名，使用预定义的命名列表中的名称
-					newName := filepath.Join(dirPath, r.NameEntryIndex[usedNames].Text+filepath.Ext(event.Name))
+					newName := filepath.Join(dirPath, r.NameEntryIndex[numUsedNames].Text+filepath.Ext(event.Name))
 					// 等待 500 毫秒，确保文件写入完成
 					time.Sleep(500 * time.Millisecond)
 					// 检查文件是否存在，如果不存在则跳过本次处理
@@ -88,7 +93,8 @@ func (r *RenameData) MonitorDirs(dirPath string) {
 						fmt.Printf("重命名文件 %s 失败: %v\n", event.Name, err)
 					} else {
 						fmt.Printf("文件 %s 重命名为 %s\n", event.Name, newName)
-						usedNames++
+						numUsedNames++
+						usedNames[newName] = true
 					}
 				}
 			}

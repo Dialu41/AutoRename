@@ -263,6 +263,8 @@ func makeNameOrderTabContent(ap fyne.App, win fyne.Window, cfg *config.UserConfi
 			text.SetText("完成！")
 			// 刷新内容容器，使文本更新生效
 			content.Refresh()
+			//跳转回子文件夹选项卡，开始下一轮重命名
+			tabs.Select(DirsTab)
 		}()
 
 	})
